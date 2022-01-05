@@ -17,7 +17,7 @@ func NewTree()*Tree{
 type node struct {
 	isLast bool
 	segment string
-	handler ControllerHandler
+	handlers []ControllerHandler
 	children []*node
 }
 
@@ -29,7 +29,7 @@ func newNode()*node{
 	}
 }
 
-func (tree *Tree) AddRoute(uri string, handler ControllerHandler)error{
+func (tree *Tree) AddRoute(uri string, handlers []ControllerHandler)error{
 	n := tree.root
 	if n.matchNode(uri) != nil{
 		return errors.New("route exists: " + uri)
@@ -55,7 +55,7 @@ func (tree *Tree) AddRoute(uri string, handler ControllerHandler)error{
 			cnode.segment = segment
 			if isLast{
 				cnode.isLast = true
-				cnode.handler = handler
+				cnode.handlers = handlers
 			}
 			n.children = append(n.children, cnode)
 			objNode = cnode
@@ -65,12 +65,12 @@ func (tree *Tree) AddRoute(uri string, handler ControllerHandler)error{
 	return nil
 }
 
-func (tree *Tree) FindHandler(uri string) ControllerHandler{
+func (tree *Tree) FindHandler(uri string) []ControllerHandler{
 	matchNode := tree.root.matchNode(uri)
 	if matchNode == nil{
 		return nil
 	}
-	return matchNode.handler
+	return matchNode.handlers
 }
 
 // 判断segment是否是通用的，即是否以:开头

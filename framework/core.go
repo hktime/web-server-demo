@@ -53,10 +53,24 @@ func (c *Core) Group(prefix string) IGroup{
 	return NewGroup(c, prefix)
 }
 
-func (c *Core) FindRouteByRequest(request *http.Request) []ControllerHandler{
+func (c *Core) FindRouteNodeByRequest(request *http.Request) *node{
 	uri := request.URL.Path
 	method := request.Method
 	upperMethod := strings.ToUpper(method)
+	if methodHandlers, ok := c.router[upperMethod]; ok {
+		return methodHandlers.root.matchNode(uri)
+	}
+	return nil
+}
+
+// FindRouteByRequest 匹配路由，如果没有匹配到，返回nil
+func (c *Core) FindRouteByRequest(request *http.Request) []ControllerHandler {
+	// uri 和 method 全部转换为大写，保证大小写不敏感
+	uri := request.URL.Path
+	method := request.Method
+	upperMethod := strings.ToUpper(method)
+
+	// 查找第一层map
 	if methodHandlers, ok := c.router[upperMethod]; ok {
 		return methodHandlers.FindHandler(uri)
 	}
@@ -64,15 +78,27 @@ func (c *Core) FindRouteByRequest(request *http.Request) []ControllerHandler{
 }
 
 func (c *Core) ServeHTTP(response http.ResponseWriter, request *http.Request){
+	// 封装自定义context
 	ctx := NewContext(request, response)
+
 	handlers := c.FindRouteByRequest(request)
-	if handlers == nil{
-		ctx.Json(404,"not found")
+	if handlers == nil {
+		// 如果没有找到，这里打印日志
+		ctx.SetStatus(404).Json( "not found")
 		return
 	}
 	ctx.SetHandlers(handlers)
+	// 寻找路由
+	node := c.FindRouteNodeByRequest(request)
+	if node == nil{
+		ctx.SetStatus(404).Json("not found")
+		return
+	}
+	// 设置路由参数
+	params := node.parseParamsFromEndNode(request.URL.Path)
+	ctx.SetParams(params)
 	if err := ctx.Next(); err != nil{
-		ctx.Json(500,"internal error")
+		ctx.SetStatus(500).Json("internal error")
 		return
 	}
 }

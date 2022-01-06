@@ -15,10 +15,11 @@ func NewTree()*Tree{
 }
 
 type node struct {
-	isLast bool
-	segment string
-	handlers []ControllerHandler
-	children []*node
+	isLast bool // 该节点是否能成为一个独立的uri
+	segment string //uri中的字符串
+	handlers []ControllerHandler //中间件+控制器
+	parent *node // 父节点
+	children []*node // 子节点
 }
 
 func newNode()*node{
@@ -26,6 +27,7 @@ func newNode()*node{
 		isLast: false,
 		segment: "",
 		children: []*node{},
+		parent: nil,
 	}
 }
 
@@ -57,6 +59,8 @@ func (tree *Tree) AddRoute(uri string, handlers []ControllerHandler)error{
 				cnode.isLast = true
 				cnode.handlers = handlers
 			}
+			// 父节点
+			cnode.parent = n
 			n.children = append(n.children, cnode)
 			objNode = cnode
 		}
@@ -122,4 +126,21 @@ func (n *node) matchNode(uri string) *node{
 		}
 	}
 	return nil
+}
+
+func (n *node) parseParamsFromEndNode(uri string) map[string]string{
+	ret := map[string]string{}
+	segments := strings.Split(uri, "/")
+	cnt := len(segments)
+	cur := n
+	for i := cnt-1; i >= 0; i--{
+		if cur.segment == ""{
+			break
+		}
+		if isWildSegment(cur.segment){
+			ret[cur.segment[1:]] = segments[i]
+		}
+		cur = cur.parent
+	}
+	return ret
 }

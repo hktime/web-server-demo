@@ -5,6 +5,9 @@ type IGroup interface {
 	Post(string, ...ControllerHandler)
 	Put(string, ...ControllerHandler)
 	Delete(string, ...ControllerHandler)
+
+	Group(string) IGroup
+
 	Use(middlewares ...ControllerHandler)
 }
 
@@ -19,7 +22,9 @@ type Group struct {
 func NewGroup(core *Core, prefix string) *Group{
 	return &Group{
 		core:   core,
+		parent: nil,
 		prefix: prefix,
+		middlewares: []ControllerHandler{},
 	}
 }
 
@@ -68,4 +73,10 @@ func (g *Group) getAbsolutePrefix() string {
 		return g.prefix
 	}
 	return g.parent.getAbsolutePrefix() + g.prefix
+}
+
+func (g *Group) Group(uri string) IGroup {
+	cgroup := NewGroup(g.core, uri)
+	cgroup.parent = g
+	return cgroup
 }

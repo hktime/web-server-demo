@@ -2,9 +2,7 @@ package framework
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -14,11 +12,14 @@ type Context struct {
 	request *http.Request
 	responseWriter http.ResponseWriter
 	ctx context.Context
-	handlers []ControllerHandler
-	index int // 当前请求调用调用到哪个节点
 
 	hasTimeout bool
 	writerMux *sync.Mutex
+
+	handlers []ControllerHandler
+	index int // 当前请求调用调用到哪个节点
+
+	params map[string]string
 }
 
 func NewContext(request *http.Request, response http.ResponseWriter)*Context{
@@ -53,6 +54,14 @@ func (ctx *Context) SetHasTimeout() {
 func (ctx *Context) HasTimeout() bool{
 	return ctx.hasTimeout
 }
+
+func (ctx *Context) SetHandlers(handlers []ControllerHandler){
+	ctx.handlers = handlers
+}
+
+func (ctx *Context) SetParams(params map[string]string){
+	ctx.params = params
+}
 // base
 
 // Context
@@ -78,120 +87,6 @@ func (ctx *Context) Value(key interface{}) interface{}{
 }
 // context
 
-// query
-
-func (ctx *Context) QueryAll()map[string][]string{
-	if ctx.request != nil{
-		return ctx.request.URL.Query()
-	}
-	return map[string][]string{}
-}
-
-func (ctx *Context) QueryInt(key string, def int)int{
-	params := ctx.QueryAll()
-	if vals, ok := params[key]; ok {
-		leng := len(vals)
-		if leng > 0{
-			intVal, err := strconv.Atoi(vals[leng-1])
-			if err != nil{
-				return def
-			}
-			return intVal
-		}
-	}
-	return def
-}
-
-func (ctx *Context) QueryString(key string, def string) string {
-	params := ctx.QueryAll()
-	if vals, ok := params[key]; ok {
-		leng := len(vals)
-		if leng > 0 {
-			return vals[leng-1]
-		}
-	}
-	return def
-}
-
-func (ctx *Context) QueryArray(key string, def []string) []string {
-	params := ctx.QueryAll()
-	if vals, ok := params[key]; ok {
-		return vals
-	}
-	return def
-}
-// end query
-
-// post query
-
-func (ctx *Context) FormAll() map[string][]string {
-	if ctx.request != nil {
-		return ctx.request.PostForm
-	}
-	return map[string][]string{}
-}
-
-func (ctx *Context) FormInt(key string, def int) int {
-	params := ctx.FormAll()
-	if vals, ok := params[key]; ok {
-		leng := len(vals)
-		if leng > 0 {
-			intVal, err := strconv.Atoi(vals[leng-1])
-			if err != nil {
-				return def
-			}
-			return intVal
-		}
-	}
-	return def
-}
-
-func (ctx *Context) FormString(key string, def string) string {
-	params := ctx.FormAll()
-	if vals, ok := params[key]; ok {
-		leng := len(vals)
-		if leng > 0 {
-			return vals[leng-1]
-		}
-	}
-	return def
-}
-
-func (ctx *Context) FormArray(key string, def []string) []string {
-	params := ctx.FormAll()
-	if vals, ok := params[key]; ok {
-		return vals
-	}
-	return def
-}
-// end post query
-
-// response
-
-func (ctx *Context) Json(status int, obj interface{}) error {
-	if ctx.HasTimeout() {
-		return nil
-	}
-	ctx.responseWriter.Header().Set("Content-Type", "application/json")
-	ctx.responseWriter.WriteHeader(status)
-	byt, err := json.Marshal(obj)
-	if err != nil {
-		ctx.responseWriter.WriteHeader(500)
-		return err
-	}
-	ctx.responseWriter.Write(byt)
-	return nil
-}
-
-func (ctx *Context) HTML(status int, obj interface{}, template string) error {
-	return nil
-}
-
-func (ctx *Context) Text(status int, obj string) error {
-	return nil
-}
-// end response
-
 // Next 核心函数，调用context的下一个函数
 func (ctx *Context) Next() error{
 	ctx.index++
@@ -201,8 +96,4 @@ func (ctx *Context) Next() error{
 		}
 	}
 	return nil
-}
-
-func (ctx *Context) SetHandlers(handlers []ControllerHandler){
-	ctx.handlers = handlers
 }

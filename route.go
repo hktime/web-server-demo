@@ -11,6 +11,15 @@ func registerRouter(core *framework.Core) {
 	subjectApi := core.Group("/subject")
 	{
 		subjectApi.Use(middlerware.Test3())
-		subjectApi.Get("/:id", SubjectGetController)
+		// 动态路由
+		subjectApi.Delete("/:id", SubjectDelController)
+		subjectApi.Put("/:id", SubjectUpdateController)
+		subjectApi.Get("/:id", middlerware.Test3(), SubjectGetController)
+		subjectApi.Get("/list/all", SubjectListController)
+
+		subjectInnerApi := subjectApi.Group("/info")
+		{
+			subjectInnerApi.Get("/name", SubjectNameController)
+		}
 	}
 }

@@ -2,8 +2,8 @@ package middlerware
 
 import (
 	"fmt"
+	"github.com/hktime/web-server-demo/framework"
 	"time"
-	"web-demo/framework"
 )
 
 func Cost()framework.ControllerHandler{

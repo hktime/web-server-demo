@@ -1,8 +1,8 @@
 package main
 
 import (
-	"web-demo/framework"
-	"web-demo/framework/middlerware"
+	"github.com/hktime/web-server-demo/framework"
+	"github.com/hktime/web-server-demo/framework/middlerware"
 )
 
 func registerRouter(core *framework.Core) {

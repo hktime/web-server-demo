@@ -2,7 +2,7 @@ package middlerware
 
 import (
 	"fmt"
-	"web-demo/framework"
+	"github.com/hktime/web-server-demo/framework"
 )
 
 func Test1() framework.ControllerHandler {

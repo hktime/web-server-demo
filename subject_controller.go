@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"web-demo/framework"
+	"github.com/hktime/web-server-demo/framework"
 )
 
 func SubjectAddController(c *framework.Context) error {

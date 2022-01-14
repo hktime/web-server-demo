@@ -2,14 +2,14 @@ package main
 
 import (
 	"context"
+	"github.com/hktime/web-server-demo/framework"
+	"github.com/hktime/web-server-demo/framework/middlerware"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-	"web-demo/framework"
-	"web-demo/framework/middlerware"
 )
 
 func main()  {

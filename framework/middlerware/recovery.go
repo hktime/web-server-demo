@@ -1,6 +1,6 @@
 package middlerware
 
-import "web-demo/framework"
+import "github.com/hktime/web-server-demo/framework"
 
 func Recovery() framework.ControllerHandler{
 	return func(c *framework.Context) error{

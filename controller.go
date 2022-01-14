@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/hktime/web-server-demo/framework"
 	"log"
 	"time"
-	"web-demo/framework"
 )
 
 func FooControllerHandler(c *framework.Context) error {
